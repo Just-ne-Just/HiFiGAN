@@ -1,0 +1,142 @@
+{
+  "name": "default_config",
+  "n_gpu": 1,
+  "preprocessing": {
+    "sr": 16000,
+    "spectrogram": {
+      "type": "MelSpectrogram",
+      "args": {
+      }
+    },
+    "log_spec": true
+  },
+  "text_encoder": {
+    "type": "CTCCharTextEncoder",
+    "args": {
+      "lm": true,
+      "model_path": "3-gram.arpa",
+      "vocab_path": "librispeech-vocab.txt"
+    }
+  },
+  "augmentations": {
+    "wave": [
+      {
+        "type": "Gain",
+        "args": {
+          "sample_rate": 16000,
+          "p": 0.1
+        }
+      },
+      {
+        "type": "PitchShift",
+        "args": {
+          "sample_rate": 16000,
+          "p": 0.1
+        }
+      },
+      {
+        "type": "AddColoredNoise",
+        "args": {
+          "sample_rate": 16000,
+          "p": 0.1
+        }
+      }
+    ],
+    "spectrogram": [
+      {
+        "type": "FrequencyMasking",
+        "args": {
+          "freq_mask_param": 20
+        }
+      },
+      {
+        "type": "TimeMasking",
+        "args": {
+          "time_mask_param": 80,
+          "p": 0.1
+        }
+      }
+    ]
+  },
+  "arch": {
+    "type": "DeepSpeech",
+    "args": {
+      "n_feats": 128,
+      "rnn_hidden": 512
+    }
+  },
+  "data": {
+    "test": {
+      "batch_size": 32,
+      "num_workers": 0,
+      "datasets": [
+        {
+          "type": "LibrispeechDataset",
+          "args": {
+            "part": "dev-clean"
+          }
+        }
+      ]
+    }
+  },
+  "optimizer": {
+    "type": "Adam",
+    "args": {
+      "lr": 3e-4
+    }
+  },
+  "loss": {
+    "type": "CTCLoss",
+    "args": {}
+  },
+  "metrics": [
+    {
+      "type": "ArgmaxWERMetric",
+      "args": {
+        "name": "WER (argmax)"
+      }
+    },
+    {
+      "type": "ArgmaxCERMetric",
+      "args": {
+        "name": "CER (argmax)"
+      }
+    },
+    {
+      "type": "LMWERMetric",
+      "args": {
+        "name": "WER (LM)",
+        "beam_size": 3
+      }
+    },
+    {
+      "type": "LMCERMetric",
+      "args": {
+        "name": "CER (LM)",
+        "beam_size": 3
+      }
+    }
+  ],
+  "lr_scheduler": {
+    "type": "OneCycleLR",
+    "args": {
+      "steps_per_epoch": 1000,
+      "epochs": 50,
+      "anneal_strategy": "cos",
+      "max_lr": 3e-4,
+      "pct_start": 0.2
+    }
+  },
+  "trainer": {
+    "epochs": 50,
+    "save_dir": "saved/",
+    "save_period": 5,
+    "verbosity": 2,
+    "monitor": "min val_loss",
+    "early_stop": 100,
+    "visualize": "wandb",
+    "wandb_project": "asr_project",
+    "len_epoch": 1000,
+    "grad_norm_clip": 10
+  }
+}
