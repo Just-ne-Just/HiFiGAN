@@ -76,6 +76,6 @@ class Generator(nn.Module):
         for mrf_block in self.mrf_blocks:
             x = mrf_block(x)
         x = self.out(x)
-        return x
+        return {'gen_audio': x}
 
 
