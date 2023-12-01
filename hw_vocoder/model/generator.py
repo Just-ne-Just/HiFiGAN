@@ -17,18 +17,22 @@ class ResBlock(nn.Module):
                                           conv_channels, 
                                           (kernel_size, 1), 
                                           dilation=dilation[m][l],
-                                          padding=(kernel_size * dilation[m][l] - dilation[m][l]) // 2))
+                                          padding=int((kernel_size * dilation[m][l] - dilation[m][l]) / 2)))
                 )
                 tmp_list.add_module(f"block_{(m + 1) * (l + 1)}", small_block)
             self.blocks.add_module(f"block_list_{m + 1}", tmp_list)
         
-        def forward(self, x):
-            for list_block in self.blocks:
-                x_old = x.clone()
-                for block in list_block:
-                    x = block(x) 
-                x = x + x_old
-            return x
+    def forward(self, x):
+        x = x.unsqueeze(3)
+        for list_block in self.blocks:
+            x_old = x.clone()
+            for block in list_block:
+                # print("res", x.shape)
+                # print("res", block)
+                x = block(x)
+                # print("res", x.shape)
+            x = x + x_old
+        return x.squeeze(3)
 
 class MRF(nn.Module):
     def __init__(self, kernel_size, dilation, conv_channels, *args, **kwargs) -> None:
@@ -72,9 +76,12 @@ class Generator(nn.Module):
         )
     
     def forward(self, x):
+        # print(x.shape)
         x = self.first_conv(x)
+        # print(x.shape)
         for mrf_block in self.mrf_blocks:
             x = mrf_block(x)
+            # print(x.shape)
         x = self.out(x)
         return {'gen_audio': x}
 

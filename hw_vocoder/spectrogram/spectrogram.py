@@ -25,32 +25,32 @@ class MelSpectrogramConfig:
 
 class MelSpectrogram(nn.Module):
 
-    def __init__(self, config: MelSpectrogramConfig):
+    def __init__(self):
         super(MelSpectrogram, self).__init__()
 
-        self.config = config
+        self.config = MelSpectrogramConfig()
 
         self.mel_spectrogram = torchaudio.transforms.MelSpectrogram(
-            sample_rate=config.sr,
-            win_length=config.win_length,
-            hop_length=config.hop_length,
-            n_fft=config.n_fft,
-            f_min=config.f_min,
-            f_max=config.f_max,
-            n_mels=config.n_mels
+            sample_rate=self.config.sr,
+            win_length=self.config.win_length,
+            hop_length=self.config.hop_length,
+            n_fft=self.config.n_fft,
+            f_min=self.config.f_min,
+            f_max=self.config.f_max,
+            n_mels=self.config.n_mels
         )
 
         # The is no way to set power in constructor in 0.5.0 version.
-        self.mel_spectrogram.spectrogram.power = config.power
+        self.mel_spectrogram.spectrogram.power = self.config.power
 
         # Default `torchaudio` mel basis uses HTK formula. In order to be compatible with WaveGlow
         # we decided to use Slaney one instead (as well as `librosa` does by default).
         mel_basis = librosa.filters.mel(
-            sr=config.sr,
-            n_fft=config.n_fft,
-            n_mels=config.n_mels,
-            fmin=config.f_min,
-            fmax=config.f_max
+            sr=self.config.sr,
+            n_fft=self.config.n_fft,
+            n_mels=self.config.n_mels,
+            fmin=self.config.f_min,
+            fmax=self.config.f_max
         ).T
         self.mel_spectrogram.mel_scale.fb.copy_(torch.tensor(mel_basis))
 

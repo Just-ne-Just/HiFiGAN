@@ -64,7 +64,7 @@ class GANLoss(nn.Module):
         self.mel = MelSpectrogram()
           
     def forward(self, 
-                mel,
+                spectrogram,
                 gen_audio,
                 period_generated,
                 period_feature_generated,
@@ -76,8 +76,8 @@ class GANLoss(nn.Module):
                 scale_feature_real,
                 **kwargs) -> Tensor:
         
-        gen_mel = self.mel(gen_audio.squeeze(1))
-        mel = nn.ConstantPad3d(padding=(0, 0, 0, 0, 0, gen_mel.shape[-1] - mel.shape[-1]), value=0)(mel)
+        gen_spectrogram = self.mel(gen_audio.squeeze(1))
+        spectrogram = nn.ConstantPad3d(padding=(0, 0, 0, 0, 0, gen_spectrogram.shape[-1] - spectrogram.shape[-1]), value=0)(spectrogram)
 
         gadv_loss = self.gadv_loss(period_generated)
         gadv_loss = gadv_loss + self.gadv_loss(scale_generated)
@@ -88,7 +88,7 @@ class GANLoss(nn.Module):
         fm_loss = self.fm_loss(period_feature_real, period_feature_generated)
         fm_loss = fm_loss + self.fm_loss(scale_feature_real, scale_feature_generated)
 
-        mel_loss = self.mel_loss(gen_mel, mel)
+        mel_loss = self.mel_loss(gen_spectrogram, spectrogram)
 
         generator_loss = gadv_loss + fm_loss + mel_loss
         descriminator_loss = dadv_loss

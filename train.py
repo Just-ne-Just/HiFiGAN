@@ -5,13 +5,12 @@ import warnings
 import numpy as np
 import torch
 
-import hw_asr.loss as module_loss
-import hw_asr.metric as module_metric
-import hw_asr.model as module_arch
-from hw_asr.trainer import Trainer
-from hw_asr.utils import prepare_device
-from hw_asr.utils.object_loading import get_dataloaders
-from hw_asr.utils.parse_config import ConfigParser
+import hw_vocoder.loss as module_loss
+import hw_vocoder.model as module_arch
+from hw_vocoder.trainer import Trainer
+from hw_vocoder.utils import prepare_device
+from hw_vocoder.utils.object_loading import get_dataloaders
+from hw_vocoder.utils.parse_config import ConfigParser
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -26,14 +25,11 @@ np.random.seed(SEED)
 def main(config):
     logger = config.get_logger("train")
 
-    # text_encoder
-    text_encoder = config.get_text_encoder()
-
     # setup data_loader instances
-    dataloaders = get_dataloaders(config, text_encoder)
+    dataloaders = get_dataloaders(config)
 
     # build model architecture, then print to console
-    model = config.init_obj(config["arch"], module_arch, n_class=len(text_encoder))
+    model = config.init_obj(config["arch"], module_arch)
     logger.info(model)
 
     # prepare for (multi-device) GPU training
@@ -44,26 +40,28 @@ def main(config):
 
     # get function handles of loss and metrics
     loss_module = config.init_obj(config["loss"], module_loss).to(device)
-    metrics = [
-        config.init_obj(metric_dict, module_metric, text_encoder=text_encoder)
-        for metric_dict in config["metrics"]
-    ]
 
     # build optimizer, learning rate scheduler. delete every line containing lr_scheduler for
     # disabling scheduler
-    trainable_params = filter(lambda p: p.requires_grad, model.parameters())
-    optimizer = config.init_obj(config["optimizer"], torch.optim, trainable_params)
-    lr_scheduler = config.init_obj(config["lr_scheduler"], torch.optim.lr_scheduler, optimizer)
+    gen_trainable_params = filter(lambda p: p.requires_grad, model.generator.parameters())
+    gen_optimizer = config.init_obj(config["gen_optimizer"], torch.optim, gen_trainable_params)
+
+    desc_trainable_params = filter(lambda p: p.requires_grad, model.descriminator.parameters())
+    desc_optimizer = config.init_obj(config["desc_optimizer"], torch.optim, desc_trainable_params)
+
+    gen_lr_scheduler = config.init_obj(config["gen_lr_scheduler"], torch.optim.lr_scheduler, gen_optimizer)
+    desc_lr_scheduler = config.init_obj(config["desc_lr_scheduler"], torch.optim.lr_scheduler, desc_optimizer)
+
     trainer = Trainer(
         model,
         loss_module,
-        metrics,
-        optimizer,
-        text_encoder=text_encoder,
+        gen_optimizer,
+        desc_optimizer,
         config=config,
         device=device,
         dataloaders=dataloaders,
-        lr_scheduler=lr_scheduler,
+        gen_lr_scheduler=gen_lr_scheduler,
+        desc_lr_scheduler=desc_lr_scheduler,
         len_epoch=config["trainer"].get("len_epoch", None)
     )
 
