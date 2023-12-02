@@ -20,7 +20,7 @@
   },
   "data": {
     "train": {
-      "batch_size": 1,
+      "batch_size": 5,
       "num_workers": 0,
       "datasets": [
         {
@@ -28,7 +28,6 @@
           "args": {
             "part": "train",
             "max_audio_length": 8192,
-            "limit": 1,
             "data_dir": "/kaggle/input/the-lj-speech-dataset/LJSpeech-1.1"
           }
         }
@@ -71,15 +70,15 @@
     }
   },
   "trainer": {
-    "epochs": 10,
+    "epochs": 4000,
     "save_dir": "saved/",
-    "save_period": 400,
+    "save_period": 12,
     "verbosity": 2,
-    "monitor": "min train_loss",
+    "monitor": "off",
     "early_stop": 100,
     "visualize": "wandb",
     "wandb_project": "nv_project",
-    "len_epoch": 400,
+    "len_epoch": 1000,
     "grad_norm_clip": 10000
   }
 }
