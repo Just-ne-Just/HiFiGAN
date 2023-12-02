@@ -30,6 +30,7 @@ def main(config):
 
     # build model architecture, then print to console
     model = config.init_obj(config["arch"], module_arch)
+    print(model)
     logger.info(model)
 
     # prepare for (multi-device) GPU training
