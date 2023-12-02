@@ -127,13 +127,13 @@ class Trainer(BaseTrainer):
                 last_train_metrics = self.train_metrics.result()
                 self.train_metrics.reset()
             
-            print(batch_idx, self.len_epoch)
+            # print(batch_idx, self.len_epoch)
             if batch_idx + 1 >= self.len_epoch:
-                print("BREAK")
+                # print("BREAK")
                 break
         log = last_train_metrics
 
-        self._log_audio(batch['gen_audio'][0], self.config["trainer"].get("sample_rate"), 'train.wav')
+        self._log_audio(batch['gen_audio'][0], 22050, 'train.wav')
 
         return log
 
