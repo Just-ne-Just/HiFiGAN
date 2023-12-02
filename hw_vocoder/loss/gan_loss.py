@@ -49,6 +49,7 @@ class FMLoss(nn.Module):
     def forward(self, target_features, gen_features, **kwargs):
         fm_loss = 0
         for pred, gen in zip(target_features, gen_features):
+            print(type(gen), type(pred))
             fm_loss = fm_loss + torch.nn.functional.l1_loss(gen, pred)
         
         return self.fm_scale * fm_loss
