@@ -13,17 +13,17 @@ class ResBlock(nn.Module):
             for l in range(len(dilation[m])):
                 small_block = nn.Sequential(
                     nn.LeakyReLU(),
-                    weight_norm(nn.Conv2d(conv_channels, 
+                    weight_norm(nn.Conv1d(conv_channels, 
                                           conv_channels, 
-                                          (kernel_size, 1), 
+                                          kernel_size, 
                                           dilation=dilation[m][l],
-                                          padding=int((kernel_size * dilation[m][l] - dilation[m][l]) / 2)))
+                                          padding="same"))
                 )
                 tmp_list.add_module(f"block_{(m + 1) * (l + 1)}", small_block)
             self.blocks.add_module(f"block_list_{m + 1}", tmp_list)
         
     def forward(self, x):
-        x = x.unsqueeze(3)
+        # x = x.unsqueeze(3)
         for list_block in self.blocks:
             x_old = x.clone()
             for block in list_block:
@@ -32,7 +32,7 @@ class ResBlock(nn.Module):
                 x = block(x)
                 # print("res", x.shape)
             x = x + x_old
-        return x.squeeze(3)
+        return x #.squeeze(3)
 
 class MRF(nn.Module):
     def __init__(self, kernel_size, dilation, conv_channels, *args, **kwargs) -> None:
