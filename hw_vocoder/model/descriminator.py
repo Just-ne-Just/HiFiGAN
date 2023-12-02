@@ -41,10 +41,10 @@ class PeriodDiscriminator(nn.Module):
         x = x.reshape(x.shape[0], x.shape[1], x.shape[2] // self.period, self.period)
         for conv in self.conv_blocks:
             x = conv(x)
-            features.append(x)
+            features.extend(x)
         
         x = self.last_conv(x)
-        features.append(x)
+        features.extend(x)
         return x.reshape(x.shape[0], -1), features
 
 
@@ -61,8 +61,8 @@ class MultiPeriodDiscriminator(nn.Module):
         features = []
         for discriminator in self.discriminators:
             x_period, feature = discriminator(x)
-            x_periods.append(x_period)
-            features.append(feature)
+            x_periods.extend(x_period)
+            features.extend(feature)
         return x_periods, features
 
 
@@ -101,10 +101,10 @@ class ScaleDiscriminator(nn.Module):
         features = []
         for conv in self.conv_blocks:
             x = conv(x)
-            features.append(x)
+            features.extend(x)
         
         x = self.last_conv(x)
-        features.append(x)
+        features.extend(x)
         return x.reshape(x.shape[0], -1), features
     
 
@@ -129,8 +129,8 @@ class MultiScaleDiscriminator(nn.Module):
         features = []
         for discriminator in self.discriminators:
             x_scale, feature = discriminator(x)
-            x_scales.append(x_scale)
-            features.append(feature)
+            x_scales.extend(x_scale)
+            features.extend(feature)
         return x_scales, features
 
 
