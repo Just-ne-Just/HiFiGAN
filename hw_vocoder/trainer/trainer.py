@@ -97,13 +97,15 @@ class Trainer(BaseTrainer):
                     metrics=self.train_metrics,
                 )
             except RuntimeError as e:
+                print("ERROR")
                 if "out of memory" in str(e) and self.skip_oom:
                     self.logger.warning("OOM on batch. Skipping batch.")
                     for p in self.model.parameters():
                         if p.grad is not None:
                             del p.grad  # free some memory
                     torch.cuda.empty_cache()
-                    continue
+                    raise e
+                    # continue
                 else:
                     raise e
             if batch_idx % self.log_step == 0:
