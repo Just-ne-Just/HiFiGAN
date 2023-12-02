@@ -71,15 +71,15 @@
     }
   },
   "trainer": {
-    "epochs": 50,
+    "epochs": 10,
     "save_dir": "saved/",
-    "save_period": 2,
+    "save_period": 400,
     "verbosity": 2,
     "monitor": "min train_loss",
     "early_stop": 100,
     "visualize": "wandb",
     "wandb_project": "nv_project",
-    "len_epoch": 1,
+    "len_epoch": 400,
     "grad_norm_clip": 10
   }
 }
