@@ -71,27 +71,23 @@ class ScaleDiscriminator(nn.Module):
         super().__init__(*args, **kwargs)
         self.conv_blocks = nn.ModuleList([
             nn.Sequential(
-                weight_norm(nn.Conv1d(1, 128, 15, 1, padding=7)),
+                weight_norm(nn.Conv1d(1, 16, 15, 1, padding=7)),
                 nn.LeakyReLU()
             ),
             nn.Sequential(
-                weight_norm(nn.Conv1d(128, 128, 41, 2, groups=4, padding=20)),
+                weight_norm(nn.Conv1d(16, 64, 41, 4, groups=4, padding=20)),
                 nn.LeakyReLU()
             ),
             nn.Sequential(
-                weight_norm(nn.Conv1d(128, 256, 41, 2, groups=16, padding=20)),
+                weight_norm(nn.Conv1d(64, 256, 41, 4, groups=16, padding=20)),
                 nn.LeakyReLU()
             ),
             nn.Sequential(
-                weight_norm(nn.Conv1d(256, 512, 41, 4, groups=16, padding=20)),
+                weight_norm(nn.Conv1d(256, 1024, 41, 4, groups=64, padding=20)),
                 nn.LeakyReLU()
             ),
             nn.Sequential(
-                weight_norm(nn.Conv1d(512, 1024, 41, 4, groups=16, padding=20)),
-                nn.LeakyReLU()
-            ),
-            nn.Sequential(
-                weight_norm(nn.Conv1d(1024, 1024, 41, 1, groups=16, padding=20)),
+                weight_norm(nn.Conv1d(1024, 1024, 41, 4, groups=256, padding=20)),
                 nn.LeakyReLU()
             ),
             nn.Sequential(
