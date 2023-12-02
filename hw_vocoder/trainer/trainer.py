@@ -84,9 +84,12 @@ class Trainer(BaseTrainer):
         self.model.train()
         self.train_metrics.reset()
         self.writer.add_scalar("epoch", epoch)
+        bar = tqdm(range(self.len_epoch), desc='train')
+
         for batch_idx, batch in enumerate(
-                tqdm(self.train_dataloader, desc="train", total=self.len_epoch)
+                self.train_dataloader
         ):
+            bar.update(1)
             try:
                 batch = self.process_batch(
                     batch,
@@ -121,7 +124,7 @@ class Trainer(BaseTrainer):
                 # because we are interested in recent train metrics
                 last_train_metrics = self.train_metrics.result()
                 self.train_metrics.reset()
-            if batch_idx >= self.len_epoch:
+            if batch_idx + 1 >= self.len_epoch:
                 break
         log = last_train_metrics
 
