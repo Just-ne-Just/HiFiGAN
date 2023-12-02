@@ -135,6 +135,12 @@ class Trainer(BaseTrainer):
         log = last_train_metrics
 
         self._log_audio(batch['gen_audio'][0], 22050, 'train.wav')
+        
+        if self.gen_lr_scheduler is not None:
+                self.gen_lr_scheduler.step()
+            
+        if self.desc_lr_scheduler is not None:
+            self.desc_lr_scheduler.step()
 
         return log
 
@@ -174,12 +180,6 @@ class Trainer(BaseTrainer):
             metrics.update("mel_loss", mel_loss.item())
             metrics.update("gen_grad_norm", self.get_grad_norm(self.model.generator))
             metrics.update("desc_grad_norm", self.get_grad_norm(self.model.descriminator))
-
-            if self.gen_lr_scheduler is not None:
-                self.gen_lr_scheduler.step()
-            
-            if self.desc_lr_scheduler is not None:
-                self.desc_lr_scheduler.step()
         return batch
 
     def _evaluation_epoch(self, epoch, part, dataloader):
