@@ -180,7 +180,8 @@ class BaseTrainer:
 
         # load optimizer state from checkpoint only when optimizer type is not changed.
         if (
-                checkpoint["config"]["optimizer"] != self.config["optimizer"] or
+                checkpoint["config"]["gen_optimizer"] != self.config["gen_optimizer"] or
+                checkpoint["config"]["desc_optimizer"] != self.config["desc_optimizer"] or
                 checkpoint["config"]["gen_lr_scheduler"] != self.config["gen_lr_scheduler"] or
                 checkpoint["config"]["desc_lr_scheduler"] != self.config["desc_lr_scheduler"]
         ):
@@ -189,7 +190,8 @@ class BaseTrainer:
                 "from that of checkpoint. Optimizer parameters not being resumed."
             )
         else:
-            self.optimizer.load_state_dict(checkpoint["optimizer"])
+            self.gen_optimizer.load_state_dict(checkpoint["gen_optimizer"])
+            self.desc_optimizer.load_state_dict(checkpoint["desc_optimizer"])
             self.gen_lr_scheduler.load_state_dict(checkpoint["gen_scheduler"])
             self.desc_lr_scheduler.load_state_dict(checkpoint["desc_scheduler"])
 
