@@ -80,6 +80,6 @@
     "visualize": "wandb",
     "wandb_project": "nv_project",
     "len_epoch": 400,
-    "grad_norm_clip": 10
+    "grad_norm_clip": 10000
   }
 }
