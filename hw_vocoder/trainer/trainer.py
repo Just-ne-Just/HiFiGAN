@@ -55,7 +55,8 @@ class Trainer(BaseTrainer):
             "gadv_loss", 
             "fm_loss", 
             "mel_loss", 
-            "grad_norm", 
+            "gen_grad_norm", 
+            "desc_grad_norm",
             writer=self.writer
         )
 
@@ -172,7 +173,8 @@ class Trainer(BaseTrainer):
             metrics.update("gadv_loss", gadv_loss.item())
             metrics.update("fm_loss", fm_loss.item())
             metrics.update("mel_loss", mel_loss.item())
-            metrics.update("grad_norm", self.get_grad_norm())
+            metrics.update("gen_grad_norm", self.get_grad_norm(self.model.generator))
+            metrics.update("desc_grad_norm", self.get_grad_norm(self.model.descriminator))
 
             if self.gen_lr_scheduler is not None:
                 self.gen_lr_scheduler.step()
@@ -282,8 +284,8 @@ class Trainer(BaseTrainer):
         self.writer.add_audio(name, audio, sample_rate=sample_rate)
 
     @torch.no_grad()
-    def get_grad_norm(self, norm_type=2):
-        parameters = self.model.parameters()
+    def get_grad_norm(self, model, norm_type=2):
+        parameters = model.parameters()
         if isinstance(parameters, torch.Tensor):
             parameters = [parameters]
         parameters = [p for p in parameters if p.grad is not None]
