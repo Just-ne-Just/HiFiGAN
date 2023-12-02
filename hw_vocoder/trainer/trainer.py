@@ -140,9 +140,6 @@ class Trainer(BaseTrainer):
 
     def process_batch(self, batch, is_train: bool, metrics: MetricTracker):
         batch = self.move_batch_to_device(batch, self.device)
-        if is_train:
-            self.gen_optimizer.zero_grad()
-            self.desc_optimizer.zero_grad()
         gen_outputs = self.model.generate(**batch)
         batch.update(gen_outputs)
 
@@ -150,26 +147,28 @@ class Trainer(BaseTrainer):
         batch.update(desc_outputs)
 
         if is_train:
+            self.desc_optimizer.zero_grad()
             generator_loss, descriminator_loss, gadv_loss, fm_loss, mel_loss = self.criterion(**batch)
             descriminator_loss.backward()
             self._clip_grad_norm()
+            metrics.update("descriminator_loss", descriminator_loss.item())
+            batch["descriminator_loss"] = descriminator_loss
             self.desc_optimizer.step()
 
+            self.gen_optimizer.zero_grad()
             desc_outputs = self.model.descriminate(gen=batch["gen_audio"].detach(), real=batch["audio"])
             batch.update(desc_outputs)
             generator_loss, descriminator_loss, gadv_loss, fm_loss, mel_loss = self.criterion(**batch)
             generator_loss.backward()
             self._clip_grad_norm()
+            metrics.update("generator_loss", generator_loss.item())
             self.gen_optimizer.step()
 
             batch["generator_loss"] = generator_loss
-            batch["descriminator_loss"] = descriminator_loss
             batch["gadv_loss"] = gadv_loss
             batch["fm_loss"] = fm_loss 
             batch["mel_loss"] = mel_loss
 
-            metrics.update("generator_loss", generator_loss.item())
-            metrics.update("descriminator_loss", descriminator_loss.item())
             metrics.update("gadv_loss", gadv_loss.item())
             metrics.update("fm_loss", fm_loss.item())
             metrics.update("mel_loss", mel_loss.item())
