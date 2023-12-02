@@ -20,6 +20,9 @@ def collate_fn(dataset_items: List[dict]):
     
     audio = pad_sequence(audio, batch_first=True)
     mel = MelSpectrogram()(audio)
+
+    print(audio.shape)
+    print(mel.shape)
         
     return {
         "audio": audio.unsqueeze(1),
