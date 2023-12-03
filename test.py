@@ -91,14 +91,14 @@ if __name__ == "__main__":
     args.add_argument(
         "-o",
         "--output",
-        default="./test_data",
+        default="./output",
         type=str,
         help="output dir",
     )
     args.add_argument(
         "-i",
         "--input",
-        default="./output",
+        default="./test_data",
         type=str,
         help="path to input dir",
     )
