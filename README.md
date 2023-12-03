@@ -1,4 +1,4 @@
-# ASR project barebones
+# HiFiGAN project
 ## Автор
 Семаков Андрей Игоревич
 ## Лицензия
@@ -6,41 +6,30 @@
 ## Installation guide
 
 ```shell
-pip install -r ./requirements.txt - версии указал, по идее, все должно заработать
+pip install -r ./requirements.txt
 ```
 ```
-Веса asr модели можно скачать с помощью git lfs pull. Самые крутые веса лежат в saved/models/default_config/success_360_512_aug/model_best.pth
-```
-```
-Веса lm модели можно скачать тут https://www.kaggle.com/datasets/leonbebra/lm-model
+Веса модели можно скачать с помощью python3 download.py
 ```
 ```
 Запуск train: python train.py -c <путь до конфига> -r <путь до чекпоинта>
-Желательно перед этим прописать в config.py корректные пути до датасетов и поставить в конфиге text_encoder.lm = False и убрать из конфига LMWERMetric, LMCERMetric
 ```
 ```
-python download.py && python test.py -c config.json -r ./saved/models/default_config/success_360_512_aug/model_best.pth -b 32
-Метрики считаются сами и выписани в самом низу выходного файла (под всеми предсказаниями)
-```
-## LM model weights
-```
-https://www.kaggle.com/datasets/leonbebra/lm-model
+Запуск теста
+python download.py && python test.py -c config.json -r model_best.pth
 ```
 ## Описание проекта
-ASR английской речи
+HiFiGAN
 
 ## Структура репозитория
 ```
 train.py - скрипт, с помощью которого запускается обучение модели
 ```
 ```
-test.py - скрипт, с помощью которого запускается инференс модели на тестовом датасете
+test.py - скрипт, с помощью которого запускается инференс модели на тестовых данных
 ```
 ```
-asr_project/config.json - основной конфиг, который используется для теста и обучения 
-```
-```
-asr_project/hw_asr - все остальные сурсы 
+config.json - основной конфиг, который используется для теста и обучения 
 ```
 
 ## Credits
