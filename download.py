@@ -1,9 +1,5 @@
 import gdown
 
-url = "https://drive.usercontent.google.com/download?id=1RPYTREPZ_PVzOHnESgTdg8x7MjVMl_4c&export=download&authuser=0&confirm=t&uuid=e6148024-cd81-4ddf-a2bc-a7c2da29a55a"
-output = "3-gram.arpa"
-gdown.download(url, output, quiet=False)
-
-url = "https://drive.usercontent.google.com/download?id=1NF7tKEBjIsLYqd2TtMSx6R9hr-mMTYGK&export=download&authuser=0&confirm=t&uuid=b4fb86ad-7118-4a92-b51c-42b86c178b1e"
-output = "librispeech-vocab.txt"
+url = "https://drive.usercontent.google.com/download?id=1YfZVcVBMZIlE2yw1Mr7sB5ILOCLG9-DW&export=download&authuser=0&confirm=t&uuid=3e64328b-71f3-4c18-879d-eeac522c7a61"
+output = "model_best.pth"
 gdown.download(url, output, quiet=False)
