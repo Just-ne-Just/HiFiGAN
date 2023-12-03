@@ -17,6 +17,7 @@ pip install -r ./requirements.txt
 ```
 Запуск теста
 python download.py && python test.py -c config.json -r model_best.pth
+Сгенерированные аудио окажутся в папке output
 ```
 ## Описание проекта
 HiFiGAN
