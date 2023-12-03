@@ -17,8 +17,8 @@ warnings.filterwarnings("ignore", category=UserWarning)
 # fix random seeds for reproducibility
 SEED = 123
 torch.manual_seed(SEED)
-torch.backends.cudnn.deterministic = True
-torch.backends.cudnn.benchmark = False
+torch.backends.cudnn.deterministic = False
+torch.backends.cudnn.benchmark = True
 np.random.seed(SEED)
 
 
@@ -30,6 +30,7 @@ def main(config):
 
     # build model architecture, then print to console
     model = config.init_obj(config["arch"], module_arch)
+    print(model)
     logger.info(model)
 
     # prepare for (multi-device) GPU training

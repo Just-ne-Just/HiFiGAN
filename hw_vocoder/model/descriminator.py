@@ -41,10 +41,10 @@ class PeriodDiscriminator(nn.Module):
         x = x.reshape(x.shape[0], x.shape[1], x.shape[2] // self.period, self.period)
         for conv in self.conv_blocks:
             x = conv(x)
-            features.append(x)
+            features.extend(x)
         
         x = self.last_conv(x)
-        features.append(x)
+        features.extend(x)
         return x.reshape(x.shape[0], -1), features
 
 
@@ -61,8 +61,8 @@ class MultiPeriodDiscriminator(nn.Module):
         features = []
         for discriminator in self.discriminators:
             x_period, feature = discriminator(x)
-            x_periods.append(x_period)
-            features.append(feature)
+            x_periods.extend(x_period)
+            features.extend(feature)
         return x_periods, features
 
 
@@ -71,27 +71,23 @@ class ScaleDiscriminator(nn.Module):
         super().__init__(*args, **kwargs)
         self.conv_blocks = nn.ModuleList([
             nn.Sequential(
-                weight_norm(nn.Conv1d(1, 128, 15, 1, padding=7)),
+                weight_norm(nn.Conv1d(1, 16, 15, 1, padding=7)),
                 nn.LeakyReLU()
             ),
             nn.Sequential(
-                weight_norm(nn.Conv1d(128, 128, 41, 2, groups=4, padding=20)),
+                weight_norm(nn.Conv1d(16, 64, 41, 4, groups=4, padding=20)),
                 nn.LeakyReLU()
             ),
             nn.Sequential(
-                weight_norm(nn.Conv1d(128, 256, 41, 2, groups=16, padding=20)),
+                weight_norm(nn.Conv1d(64, 256, 41, 4, groups=16, padding=20)),
                 nn.LeakyReLU()
             ),
             nn.Sequential(
-                weight_norm(nn.Conv1d(256, 512, 41, 4, groups=16, padding=20)),
+                weight_norm(nn.Conv1d(256, 1024, 41, 4, groups=64, padding=20)),
                 nn.LeakyReLU()
             ),
             nn.Sequential(
-                weight_norm(nn.Conv1d(512, 1024, 41, 4, groups=16, padding=20)),
-                nn.LeakyReLU()
-            ),
-            nn.Sequential(
-                weight_norm(nn.Conv1d(1024, 1024, 41, 1, groups=16, padding=20)),
+                weight_norm(nn.Conv1d(1024, 1024, 41, 4, groups=256, padding=20)),
                 nn.LeakyReLU()
             ),
             nn.Sequential(
@@ -105,10 +101,10 @@ class ScaleDiscriminator(nn.Module):
         features = []
         for conv in self.conv_blocks:
             x = conv(x)
-            features.append(x)
+            features.extend(x)
         
         x = self.last_conv(x)
-        features.append(x)
+        features.extend(x)
         return x.reshape(x.shape[0], -1), features
     
 
@@ -133,8 +129,8 @@ class MultiScaleDiscriminator(nn.Module):
         features = []
         for discriminator in self.discriminators:
             x_scale, feature = discriminator(x)
-            x_scales.append(x_scale)
-            features.append(feature)
+            x_scales.extend(x_scale)
+            features.extend(feature)
         return x_scales, features
 
 

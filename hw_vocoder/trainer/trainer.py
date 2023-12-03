@@ -55,7 +55,8 @@ class Trainer(BaseTrainer):
             "gadv_loss", 
             "fm_loss", 
             "mel_loss", 
-            "grad_norm", 
+            "gen_grad_norm", 
+            "desc_grad_norm",
             writer=self.writer
         )
 
@@ -84,9 +85,12 @@ class Trainer(BaseTrainer):
         self.model.train()
         self.train_metrics.reset()
         self.writer.add_scalar("epoch", epoch)
+        bar = tqdm(range(self.len_epoch), desc='train')
+
         for batch_idx, batch in enumerate(
-                tqdm(self.train_dataloader, desc="train", total=self.len_epoch)
+                self.train_dataloader
         ):
+            bar.update(1)
             try:
                 batch = self.process_batch(
                     batch,
@@ -94,13 +98,15 @@ class Trainer(BaseTrainer):
                     metrics=self.train_metrics,
                 )
             except RuntimeError as e:
+                print("ERROR")
                 if "out of memory" in str(e) and self.skip_oom:
                     self.logger.warning("OOM on batch. Skipping batch.")
                     for p in self.model.parameters():
                         if p.grad is not None:
                             del p.grad  # free some memory
                     torch.cuda.empty_cache()
-                    continue
+                    raise e
+                    # continue
                 else:
                     raise e
             if batch_idx % self.log_step == 0:
@@ -121,19 +127,25 @@ class Trainer(BaseTrainer):
                 # because we are interested in recent train metrics
                 last_train_metrics = self.train_metrics.result()
                 self.train_metrics.reset()
-            if batch_idx >= self.len_epoch:
+            
+            # print(batch_idx, self.len_epoch)
+            if batch_idx + 1 >= self.len_epoch:
+                # print("BREAK")
                 break
         log = last_train_metrics
 
-        self._log_audio(batch['gen_audio'][0], self.config["trainer"].get("sample_rate"), 'train.wav')
+        self._log_audio(batch['gen_audio'][0], 22050, 'train.wav')
+        
+        if self.gen_lr_scheduler is not None:
+                self.gen_lr_scheduler.step()
+            
+        if self.desc_lr_scheduler is not None:
+            self.desc_lr_scheduler.step()
 
         return log
 
     def process_batch(self, batch, is_train: bool, metrics: MetricTracker):
         batch = self.move_batch_to_device(batch, self.device)
-        if is_train:
-            self.gen_optimizer.zero_grad()
-            self.desc_optimizer.zero_grad()
         gen_outputs = self.model.generate(**batch)
         batch.update(gen_outputs)
 
@@ -141,36 +153,33 @@ class Trainer(BaseTrainer):
         batch.update(desc_outputs)
 
         if is_train:
+            self.desc_optimizer.zero_grad()
             generator_loss, descriminator_loss, gadv_loss, fm_loss, mel_loss = self.criterion(**batch)
             descriminator_loss.backward()
             self._clip_grad_norm()
+            metrics.update("descriminator_loss", descriminator_loss.item())
+            batch["descriminator_loss"] = descriminator_loss
             self.desc_optimizer.step()
 
+            self.gen_optimizer.zero_grad()
             desc_outputs = self.model.descriminate(gen=batch["gen_audio"].detach(), real=batch["audio"])
             batch.update(desc_outputs)
             generator_loss, descriminator_loss, gadv_loss, fm_loss, mel_loss = self.criterion(**batch)
             generator_loss.backward()
             self._clip_grad_norm()
+            metrics.update("generator_loss", generator_loss.item())
             self.gen_optimizer.step()
 
             batch["generator_loss"] = generator_loss
-            batch["descriminator_loss"] = descriminator_loss
             batch["gadv_loss"] = gadv_loss
             batch["fm_loss"] = fm_loss 
             batch["mel_loss"] = mel_loss
 
-            metrics.update("generator_loss", generator_loss.item())
-            metrics.update("descriminator_loss", descriminator_loss.item())
             metrics.update("gadv_loss", gadv_loss.item())
             metrics.update("fm_loss", fm_loss.item())
             metrics.update("mel_loss", mel_loss.item())
-            metrics.update("grad_norm", self.get_grad_norm())
-
-            if self.gen_lr_scheduler is not None:
-                self.gen_lr_scheduler.step()
-            
-            if self.desc_lr_scheduler is not None:
-                self.desc_lr_scheduler.step()
+            metrics.update("gen_grad_norm", self.get_grad_norm(self.model.generator))
+            metrics.update("desc_grad_norm", self.get_grad_norm(self.model.descriminator))
         return batch
 
     def _evaluation_epoch(self, epoch, part, dataloader):
@@ -274,8 +283,8 @@ class Trainer(BaseTrainer):
         self.writer.add_audio(name, audio, sample_rate=sample_rate)
 
     @torch.no_grad()
-    def get_grad_norm(self, norm_type=2):
-        parameters = self.model.parameters()
+    def get_grad_norm(self, model, norm_type=2):
+        parameters = model.parameters()
         if isinstance(parameters, torch.Tensor):
             parameters = [parameters]
         parameters = [p for p in parameters if p.grad is not None]

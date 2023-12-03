@@ -23,7 +23,7 @@ class LJspeechDataset(BaseDataset):
         if data_dir is None:
             data_dir = ROOT_PATH / "data" / "datasets" / "ljspeech"
             data_dir.mkdir(exist_ok=True, parents=True)
-        self._data_dir = data_dir
+        self._data_dir = Path(data_dir)
         index = self._get_or_load_index(part)
 
         super().__init__(index, *args, **kwargs)
@@ -51,7 +51,7 @@ class LJspeechDataset(BaseDataset):
 
 
     def _get_or_load_index(self, part):
-        index_path = self._data_dir / f"{part}_index.json"
+        index_path = Path(f"{part}_index.json")
         if index_path.exists():
             with index_path.open() as f:
                 index = json.load(f)
@@ -63,7 +63,7 @@ class LJspeechDataset(BaseDataset):
 
     def _create_index(self, part):
         index = []
-        split_dir = self._data_dir / part
+        split_dir = self._data_dir / "wavs"
         if not split_dir.exists():
             self._load_dataset()
 
