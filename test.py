@@ -33,7 +33,7 @@ def syn(model, input_dir, output_dir, device):
 
         output_dir = Path(output_dir)
         output_dir.mkdir(exist_ok=True, parents=True)
-        generated_audio = model(mel_spec.to(device))['gen_audio'].squeeze(0)
+        generated_audio = model.generate(mel_spec.to(device))['gen_audio'].squeeze(0)
         generated_audio = generated_audio.detach().cpu()
         torchaudio.save(str(output_dir / f'audio_gen_{i + 1}.wav'), generated_audio, sr)
 
